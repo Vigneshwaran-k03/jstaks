@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Events</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
@@ -50,6 +51,25 @@
 <p>Right-click in this box!</p>
 <p>Context menu is disabled.</p>
 </div>
+<br>
+<h2>The oncopy Event</h2>
+
+<label for="copyInput">Copy this text:</label>
+<input type="text" id="copyInput" title="Copy this text" placeholder="Try to copy me" oncopy="myFunction()" value="Try to copy me">
+
+<p id="demo1"></p>
+<br>
+<h2>Custome Event</h2>
+<br>
+
+<p>Username:
+<input type="text" id="Username" placeholder="Enter your username"></p>
+<br>
+<p>Password:
+<input type="password" id="password" placeholder="Enter your password"></p>
+<br>
+<button id="loginBtn">Login</button>
+
 
 <script>
     function myfunction(){
@@ -105,7 +125,26 @@ function drop(event) {
 
 const div1 = document.getElementById("myDiv");
 div1.addEventListener("contextmenu", (e) => {e.preventDefault()});
+function myFunction() {
+  document.getElementById("demo1").innerHTML = "You copied text!"
+}
+const button = document.getElementById("loginBtn");
 
+// Listener
+document.addEventListener("userLogin", (e) => {
+  alert(`Hello, ${e.detail.username}! You just logged in.`);
+  
+});
+
+// Dispatch event when button is clicked
+button.addEventListener("click", () => {
+
+const x=document.getElementById("Username").value;  
+const loginEvent = new CustomEvent("userLogin", {
+detail: { username: x }
+  });
+  document.dispatchEvent(loginEvent);
+});
 </script>
 
 </body>
