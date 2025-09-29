@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Events</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+.droptarget {
+  width: 100px; 
+  height: 35px;
+  padding: 10px;
+  border: 1px solid black;
+}
+.context-menu {
+  position: absolute;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 10px;
+  display: none;
+}
+</style>
+</head>
+<body>
+<h1>Events</h1>
+<button id="btn1">Click</button>
+<p id="add"></p>
+<button id="btn2">dubleclick</button>
+<p id="a"></p>
+<br>
+<p id="mousedownup" onmousedown="mousedown()" onmouseup="mouseup()" style="font-size: 50px;">Hello</p>
+<br>
+<p onmousemove="changecolor()" id="sdw" onmouseout="nocolor()">onmousemove and onmouseout</p>
+<br>
+<div class="droptarget" ondrop="drop(event)" ondragover="allowDrop(event)">
+  <p ondragstart="dragStart(event)" ondrag="dragging(event)" draggable="true" id="dragtarget">Drag me!</p>
+</div>
+
+<p id="demo"></p>
+
+<div class="droptarget" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+
+
+<h2>The contextmenu Event</h2>
+
+<div style="border:1px solid black;text-align:center">
+<p>Right-click in this box!</p>
+<p>Context menu will show.</p>
+</div>
+<br>
+<div id="myDiv" style="border:1px solid black;text-align:center">
+<p>Right-click in this box!</p>
+<p>Context menu is disabled.</p>
+</div>
+
+<script>
+    function myfunction(){
+        let a=10;
+        let b=20;
+        let c=a+b;
+        document.getElementById("add").innerHTML=c;
+    }
+    function dbclick(){
+      let a="Double click work";
+      document.getElementById("a").innerHTML=a;
+    }
+ document.getElementById("btn1").addEventListener("click", () => {
+  myfunction();
+ document.getElementById("btn2").addEventListener("dblclick",()=>{
+ dbclick();
+   
+});
+});
+function mousedown(){
+    document.getElementById("mousedownup").style.color="green";
+   }
+function mouseup(){
+    document.getElementById("mousedownup").style.color="Black";
+   }
+function clearCoor() {
+  document.getElementById("demo").innerHTML = "";
+}
+function changecolor(){
+  document.getElementById("sdw").style.color="red";
+ }
+ function nocolor(){
+  document.getElementById("sdw").style.color="black";
+ }
+function dragStart(event) {
+  event.dataTransfer.setData("Text", event.target.id);
+}
+
+function dragging(event) {
+  document.getElementById("demo").innerHTML = "The p element is being dragged";
+}
+
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function drop(event) {
+  event.preventDefault();
+  const data = event.dataTransfer.getData("Text");
+  event.target.appendChild(document.getElementById(data));
+  document.getElementById("demo").innerHTML = "The p element was dropped";
+}
+
+const div1 = document.getElementById("myDiv");
+div1.addEventListener("contextmenu", (e) => {e.preventDefault()});
+
+</script>
+
+</body>
+</html>
