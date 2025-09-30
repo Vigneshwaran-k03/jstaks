@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charts</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+</head>
+<body> 
+    <div id="line-chart" style='width:600px;height:500px;'></div>
+    <br>
+    <div id="bar-chart" style="width: 600px; height:500px;"></div>
+    <br>
+    <div id="pie-chart" style="width: 600px; height:500px;"></div>
+    <br>
+    <div id="scatter-plot" style="width: 600px; height:500px;"></div>
+    <br>
+<script>
+    var chart = echarts.init(document.getElementById("line-chart"));
+    var option={
+        title: { text: "Line chart"},
+        tooltip:{},
+        xAxis:{ type:"category",
+        data: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']},
+        yAxis: {
+            type: 'value'
+        },
+        series:[{type:"line",data:[60,78,45,1,25,80,0]}]
+    };
+    chart.setOption(option);
+    var chart1=echarts.init(document.getElementById('bar-chart'));
+    var option1={
+        title:{text:'Bar Chart'},
+        tooltip: {},
+        xAxis:{ type: "category",data:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']},
+        yAxis: {type: 'value'},
+        series:[{type: 'bar',data:[14,54,45,21,78,36,36]}]
+    };
+    chart1.setOption(option1);
+    var chart2=echarts.init(document.getElementById('pie-chart'));
+    var option2={
+        title:{text:'Pie Chart',left:'center'},
+        tooltip: {trigger: 'item'},
+        legend: {orient:'vertical',left: 'left'},
+        series:[{name:'Access From',type: 'pie',radius:'50%',data:[{value: 542,name:'Sun'},{value:854,name:'Mon'},{value:887,name:'Tue'},{value:244,name:'Wed'},{value:700,name:'Thu'},{value:444,name:'Fri'},{value:754,name:'Sat'}],
+        emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowOffsetX: 0,
+          shadowColor: 'rgba(0, 0, 0, 0.5)'}
+    }}]
+};
+    chart2.setOption(option2);
+var chart4=echarts.init(document.getElementById('scatter-plot'));
+var option3={
+    title:{text: 'Scatter'},
+    xAxis:{},
+    yAxis:{},
+    series: [{symbolSize:32,type:'scatter',
+        data:[ [10.0, 8.04],
+        [8.07, 6.95],
+        [13.0, 7.58],
+        [9.05, 8.81],
+        [11.0, 8.33],
+        [14.0, 7.66],
+        [13.4, 6.81],
+        [10.0, 6.33],
+        [14.0, 8.96],
+        [12.5, 6.82],
+        [9.15, 7.2],
+        [11.5, 7.2],
+        [3.03, 4.23],
+        [12.2, 7.83],
+        [2.02, 4.47],
+        [1.05, 3.33],
+        [4.05, 4.96],
+        [6.03, 7.24],
+        [12.0, 6.26],
+        [12.0, 8.84],
+        [7.08, 5.82],
+        [5.02, 5.68]
+      ]}]
+};
+chart4.setOption(option3);
+</script>
+</body>
+</html>

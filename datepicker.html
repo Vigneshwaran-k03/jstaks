@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Table with Date Filter</title>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- jQuery UI -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+  <style>
+    .filter-section {
+      margin-bottom: 15px;
+    }
+    .filter-section input {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Employee Table</h2>
+
+  <!-- Filter inputs -->
+  <div class="filter-section">
+    Start Date: <input type="text" id="minDate" placeholder="Start Date">
+    End Date: <input type="text" id="maxDate" placeholder="End Date">
+  </div>
+
+  <!-- Employee Table -->
+  <table id="employeeTable" class="display">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Position</th>
+        <th>Date of Join</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Vicky</td><td>Data Analyst</td><td>01-09-2025</td></tr>
+      <tr><td>Arun</td><td>QA Engineer</td><td>15-09-2025</td></tr>
+      <tr><td>Priya</td><td>Developer</td><td>25-09-2025</td></tr>
+      <tr><td>Kumar</td><td>Manager</td><td>05-10-2025</td></tr>
+      <tr><td>Divya</td><td>HR</td><td>20-10-2025</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    $(document).ready(function () {
+      // Initialize DataTable
+      var table = $('#employeeTable').DataTable();
+
+      // Initialize Datepickers
+      $("#minDate, #maxDate").datepicker({
+        dateFormat: "dd-mm-yy"
+      });
+
+      // Custom filtering function
+      $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+          var min = $("#minDate").datepicker("getDate");
+          var max = $("#maxDate").datepicker("getDate");
+          var joinDate = $.datepicker.parseDate("dd-mm-yy", data[2]); // Column 2 = Date of Join
+
+          if (
+            (!min && !max) ||
+            (!min && joinDate <= max) ||
+            (min <= joinDate && !max) ||
+            (min <= joinDate && joinDate <= max)
+          ) {
+            return true;
+          }
+          return false;
+        }
+      );
+
+      // Redraw table when date changes
+      $("#minDate, #maxDate").change(function () {
+        table.draw();
+      });
+    });
+  </script>
+
+</body>
+</html>
