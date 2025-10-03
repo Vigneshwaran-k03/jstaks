@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Dashboard</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- JS libs -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style> 
+    #salaryChart { width: 100%; height: 350px; margin-top: 20px; }
+    #map { width: 100%; height: 400px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h2>Employee Dashboard</h2>
+
+  <label for="excelFile">Upload Excel file:</label>
+  <input type="file" id="excelFile" accept=".xlsx" />
+  <br><br>
+
+  <label for="dateRange">Pick a date range:</label>
+  <input id="startDate" type="text" placeholder="mm/dd/yy">
+  <input id="endDate" type="text" placeholder="mm/dd/yy">
+  <button id="filterDateRange">Filter by Range</button>
+  <button id="resetDate">Show All</button>
+
+  <table id="empTable" class="display" width="100%"></table>
+
+  <div id="salaryChart"></div>
+  <div id="map"></div>
+
+  <script>
+    let employees = [];
+    let dataTable, chart, map, markersLayer;
+
+    $(document).ready(function(){
+        $("#startDate").datepicker({ dateFormat:"mm/dd/yy" });
+        $("#endDate").datepicker({ dateFormat:"mm/dd/yy" });
+
+        $("#filterDateRange").on("click", filterByDateRange);
+        $("#resetDate").on("click", resetFilter);
+
+        $("#excelFile").on("change", handleFile);
+    });
+
+    function handleFile(e){
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(event){
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data,{type:'array'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            let json = XLSX.utils.sheet_to_json(sheet,{header:1,raw:false});
+
+            // Convert row to objects
+            employees = json.slice(1).map(row => {
+                let hireDate = row[4];
+                // Try parsing Excel date properly
+                if(!isNaN(Date.parse(hireDate))){
+                    hireDate = new Date(hireDate);
+                } else {
+                    // fallback: try mm/dd/yyyy
+                    hireDate = new Date(hireDate.replace(/-/g,"/"));
+                }
+
+                return {
+                    id: row[0],
+                    name: row[1],
+                    department: row[2],
+                    position: row[3],
+                    hiredate: hireDate,
+                    salary: row[5],
+                    city: row[6]
+                };
+            });
+
+            initDataTable(employees);
+            initChart();
+            updateChart(employees);
+            initMap();
+            plotCities(employees);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // DataTable
+    function initDataTable(data){
+        if(dataTable){ dataTable.destroy(); $("#empTable").empty(); }
+        dataTable = $('#empTable').DataTable({
+            data: data,
+            columns: [
+                {data:"id", title:"ID"},
+                {data:"name", title:"Name"},
+                {data:"department", title:"Department"},
+                {data:"position", title:"Position"},
+                {data:"hiredate", title:"Hire Date",
+                 render: d => d ? $.datepicker.formatDate("mm/dd/yy", d) : "" },
+                {data:"salary", title:"Salary"},
+                {data:"city", title:"City"}
+            ]
+        });
+    }
+
+    // Chart
+    function initChart(){
+        chart = echarts.init(document.getElementById("salaryChart"));
+        chart.setOption({
+            title:{text:"Employee Salary Chart"},
+            tooltip:{},
+            xAxis: {type:'category', data:[], axisLabel:{interval:0, rotate:45, fontSize:12}},
+            yAxis: {type:'value'},
+            series:[{type:'bar', data:[]}]
+        });
+    }
+
+    function updateChart(list){
+        chart.setOption({
+            xAxis:{data:list.map(e=>e.name)},
+            series:[{data:list.map(e=>e.salary)}]
+        });
+    }
+
+    // Filter
+    function filterByDateRange(){
+        let startDate = $("#startDate").datepicker("getDate");
+        let endDate = $("#endDate").datepicker("getDate");
+
+        if(!startDate || !endDate){
+            alert("Please select both start and end dates");
+            return;
+        }
+
+        let filtered = employees.filter(e=>{
+            if(!e.hiredate) return false;
+            return e.hiredate >= startDate && e.hiredate <= endDate;
+        });
+
+        initDataTable(filtered);
+        updateChart(filtered);
+        plotCities(filtered);
+    }
+
+    function resetFilter(){
+        $("#startDate").val("");
+        $("#endDate").val("");
+
+        initDataTable(employees);
+        updateChart(employees);
+        plotCities(employees);
+    }
+
+    // Map
+    const cityCoords = {
+        "Chennai":[13.0827,80.2707],
+        "Madurai":[9.9252,78.1198],
+        "Virudhunagar":[9.5845,77.9579],
+        "Sivakasi":[9.4550,77.7950],
+        "Salem":[11.6643,78.1460],
+        "Kochi":[9.9312,76.2673],
+        "Nagercoil":[8.1833,77.4119],
+        "Vellore":[12.9236,79.1331],
+        "Thanjavur":[10.7877,79.1384],
+        "Rajapalayam":[9.4515,77.5543],
+        "Srivilliputhur":[9.5121,77.6340],
+        "Aruppkottai":[9.5139,78.1002]
+    };
+
+    function initMap(){
+        map = L.map("map").setView([11,78],6);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+            maxZoom:18, attribution:"© OpenStreetMap"
+        }).addTo(map);
+        markersLayer = L.layerGroup().addTo(map);
+    }
+
+    function plotCities(list){
+        markersLayer.clearLayers();
+        const grouped = {};
+        list.forEach(e=>{
+            if(!grouped[e.city]) grouped[e.city] = [];
+            grouped[e.city].push(e.name+" ("+e.salary+")");
+        });
+
+        Object.keys(grouped).forEach(city=>{
+            const coords = cityCoords[city];
+            if(coords){
+                L.marker(coords).bindPopup(
+                    "<b>"+city+"</b><br>"+grouped[city].join("<br>")
+                ).addTo(markersLayer);
+            }
+        });
+    }
+  </script>
+</body>
+</html>
